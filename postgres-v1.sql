@@ -43,3 +43,7 @@ FROM pg_stat_activity
 WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes' AND pid = 22401;
 
 SELECT pg_cancel_backend(6260);
+
+# Postgresql SSL Connection
+psql "sslmode=disable hostaddr=0.0.0.0 port=5432 user=kalpesh dbname=sample_production"
+psql "hostaddr=0.0.0.0 port=5432 user=kalpesh dbname=sample_production"
