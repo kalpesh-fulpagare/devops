@@ -38,9 +38,13 @@ SELECT pid, now() - pg_stat_activity.query_start AS duration, state, query
 FROM pg_stat_activity
 WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes' AND state = 'active';
 
+SELECT pid, now() - pg_stat_activity.query_start AS duration, state, query
+FROM pg_stat_activity
+WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes' AND state = 'active';
+
 SELECT pid, query, now() - pg_stat_activity.query_start AS duration, state
 FROM pg_stat_activity
-WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes' AND pid = 22401;
+WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes' AND pid = 22401;
 
 SELECT pg_cancel_backend(6260);
 
