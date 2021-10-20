@@ -33,6 +33,12 @@ SELECT count(*), client_addr from pg_stat_activity group by client_addr;
 SELECT client_addr, COUNT(client_addr) from pg_stat_activity  GROUP BY pg_stat_activity.client_addr;
 SELECT application_name, client_addr, pid, usename from pg_stat_activity;
 
+# Postgresql Terminate existing Connections
+SELECT pid, pg_terminate_backend(pid) 
+FROM pg_stat_activity 
+WHERE datname = current_database() AND pid <> pg_backend_pid();
+
+
 # Postgresql Long Pending connections
 SELECT pid, now() - pg_stat_activity.query_start AS duration, state, query
 FROM pg_stat_activity
