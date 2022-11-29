@@ -1,3 +1,13 @@
+# Postgresql Deadlock - Blocking Queries
+SELECT pid, now() - pg_stat_activity.query_start AS duration, usename, pg_blocking_pids(pid) as blocked_by, query as blocked_query 
+FROM pg_stat_activity 
+WHERE cardinality(pg_blocking_pids(pid)) > 0;
+
+# View query details from PID
+SELECT pid, query, now() - pg_stat_activity.query_start AS duration, pg_stat_activity.query_start AS start_time, state 
+FROM pg_stat_activity
+WHERE pid = 22401;
+
 # Postgresql Big Tables
 SELECT relname, pg_size_pretty(pg_total_relation_size(C.oid))
   FROM pg_class C
@@ -48,11 +58,12 @@ SELECT pid, now() - pg_stat_activity.query_start AS duration, state, query
 FROM pg_stat_activity
 WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes' AND state = 'active';
 
-SELECT pid, query, now() - pg_stat_activity.query_start AS duration, state
+SELECT pid, now() - pg_stat_activity.query_start AS duration, pg_stat_activity.query_start AS start_time, query, state 
 FROM pg_stat_activity
-WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes' AND pid = 22401;
+WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes' AND state = 'active' AND pid = 22401;
 
 SELECT pg_cancel_backend(6260);
+SELECT pg_terminate_backend(6260);
 
 # Postgresql SSL Connection
 psql "sslmode=disable hostaddr=0.0.0.0 port=5432 user=kalpesh dbname=sample_production"
