@@ -3,6 +3,9 @@ SELECT pid, now() - pg_stat_activity.query_start AS duration, usename, pg_blocki
 FROM pg_stat_activity 
 WHERE cardinality(pg_blocking_pids(pid)) > 0;
 
+# Postgresql DeadTuple count of top tables
+SELECT n_live_tup, n_dead_tup, relname FROM pg_stat_all_tables ORDER BY n_dead_tup DESC LIMIT 25;
+
 # View query details from PID
 SELECT pid, query, now() - pg_stat_activity.query_start AS duration, pg_stat_activity.query_start AS start_time, state 
 FROM pg_stat_activity
