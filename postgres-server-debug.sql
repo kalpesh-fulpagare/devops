@@ -1,5 +1,5 @@
 /* Partition/Chunk Information of Hypertable(TimescaleDB) */
-SELECT hypertable_name, chunk_name,primary_dimension,range_start,range_end FROM timescaledb_information.chunks WHERE hypertable_name='app_data_usages' ORDER BY range_start;
+SELECT hypertable_name, chunk_name,primary_dimension,range_start,range_end FROM timescaledb_information.chunks WHERE hypertable_name='apps_and_usages' ORDER BY range_start;
 
 SELECT * from pg_stat_statements order by shared_blks_hit + shared_blks_read desc limit 5;
 
