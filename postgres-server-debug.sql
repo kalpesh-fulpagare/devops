@@ -1,3 +1,12 @@
+/* Partition/Chunk Information of Hypertable(TimescaleDB) */
+SELECT hypertable_name, chunk_name,primary_dimension,range_start,range_end FROM timescaledb_information.chunks WHERE hypertable_name='app_data_usages' ORDER BY range_start;
+
+SELECT * from pg_stat_statements order by shared_blks_hit + shared_blks_read desc limit 5;
+
+/* Vaccum information*/
+SELECT schemaname, relname, last_vacuum, last_autovacuum,n_live_tup, n_dead_tup, vacuum_count, autovacuum_count FROM pg_stat_user_tables WHERE relname='products';
+SELECT schemaname, relname, last_vacuum, last_autovacuum, vacuum_count, autovacuum_count FROM pg_stat_user_tables;
+
 # Postgresql Deadlock - Blocking Queries
 SELECT pid, now() - pg_stat_activity.query_start AS duration, usename, pg_blocking_pids(pid) as blocked_by, query as blocked_query 
 FROM pg_stat_activity 
@@ -58,7 +67,6 @@ SELECT application_name, client_addr, pid, usename from pg_stat_activity;
 SELECT pid, pg_terminate_backend(pid) 
 FROM pg_stat_activity 
 WHERE datname = current_database() AND pid <> pg_backend_pid();
-
 
 # Postgresql Long Pending connections
 SELECT pid, now() - pg_stat_activity.query_start AS duration, state, query
