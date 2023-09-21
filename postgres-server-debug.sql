@@ -3,6 +3,58 @@ SELECT hypertable_name, chunk_name,primary_dimension,range_start,range_end FROM 
 
 SELECT * from pg_stat_statements order by shared_blks_hit + shared_blks_read desc limit 5;
 
+/* TimescaleDB SQL's */
+CREATE MATERIALIZED VIEW product_usage_daily_view
+WITH (timescaledb.continuous) AS
+SELECT time_bucket('1 day', date) as product_data_bucket, product_id, SUM(product_sold) AS prod_sold, SUM(product_purchased) AS prod_buy
+FROM product_usages
+GROUP BY product_id, product_data_bucket
+WITH NO DATA;
+
+SELECT add_continuous_aggregate_policy('product_usage_daily_view', start_offset => INTERVAL '2 days', end_offset => INTERVAL '1 hour', schedule_interval => INTERVAL '1 hour');
+
+CALL refresh_continuous_aggregate('product_usage_daily_view', NULL, localtimestamp - INTERVAL '2 day');
+
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_daily_data_usage_counts ON product_usage_daily_view(device_id, product_data_bucket);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SELECT * FROM timescaledb_information.chunks WHERE hypertable_name = 'product_usages';
+SELECT * FROM timescaledb_information.chunks WHERE hypertable_name = 'product_usages' AND chunk_name = '_hyper_0_007_chunk';
+
+SELECT show_chunks('product_usages', older_than => INTERVAL '3 months');
+
+SELECT drop_chunks('product_usages', older_than => INTERVAL '3 months');
+
+SELECT pg_size_pretty(hypertable_size('product_usages'));
+
+SELECT view_name, format('%I.%I', materialization_hypertable_schema, materialization_hypertable_name) AS materialization_hypertable FROM timescaledb_information.continuous_aggregates;
+SELECT * FROM timescaledb_information.continuous_aggregates;
+SELECT * FROM timescaledb_information.chunks WHERE hypertable_name = '_materialized_hypertable_35';
+
+
+SELECT schedule_interval, config FROM timescaledb_information.jobs WHERE hypertable_name = <table_name> AND timescaledb_information.jobs.proc_name = 'policy_retention';
+SELECT schedule_interval, config FROM timescaledb_information.jobs WHERE hypertable_name = 'product_usages' AND timescaledb_information.jobs.proc_name = 'policy_retention';
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SELECT dev_id, COUNT(dev_id) AS most_used_device FROM product_usages
+WHERE date > '2022-12-11 00:00:00' AND date < '2022-12-11 23:59:59'
+GROUP BY dev_id ORDER BY most_used_device DESC
+LIMIT 1;
+
+SELECT dev_id, COUNT(dev_id) AS most_used_device FROM product_usages
+WHERE date > '2022-12-11 00:00:00' AND date < '2022-12-11 23:59:59' AND dev_id NOT IN(2034107, 2504081)
+GROUP BY dev_id ORDER BY most_used_device DESC
+LIMIT 1;
+
+SELECT dev_id, COUNT(dev_id) AS most_used_device FROM product_data_usages
+WHERE date > '2022-12-11 00:00:00' AND date < '2022-12-11 23:59:59'
+GROUP BY dev_id ORDER BY most_used_device DESC
+LIMIT 1;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /* Vaccum information*/
 SELECT schemaname, relname, last_vacuum, last_autovacuum,n_live_tup, n_dead_tup, vacuum_count, autovacuum_count FROM pg_stat_user_tables WHERE relname='products';
 SELECT schemaname, relname, last_vacuum, last_autovacuum, vacuum_count, autovacuum_count FROM pg_stat_user_tables;
