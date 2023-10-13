@@ -80,6 +80,9 @@ SELECT pid, query, now() - pg_stat_activity.query_start AS duration, pg_stat_act
 FROM pg_stat_activity
 WHERE pid = 22401;
 
+# Postgresql table size
+SELECT pg_size_pretty(pg_relation_size('products'));
+
 # Postgresql Big Tables
 SELECT relname, pg_size_pretty(pg_total_relation_size(C.oid))
   FROM pg_class C
