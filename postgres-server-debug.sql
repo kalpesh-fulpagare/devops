@@ -81,6 +81,7 @@ FROM pg_stat_activity
 WHERE pid = 22401;
 
 # Postgresql table size
+SELECT pg_size_pretty(pg_total_relation_size('products'));  # Including Indices
 SELECT pg_size_pretty(pg_relation_size('products'));
 
 # Postgresql Big Tables
@@ -99,6 +100,43 @@ FROM pg_stat_all_indexes
 WHERE schemaname = 'public' AND indexrelname NOT LIKE 'pg_toast_%' AND idx_scan = 0
     AND idx_tup_read = 0 AND idx_tup_fetch = 0
 ORDER BY pg_relation_size(indexrelname::regclass) DESC;
+
+# DATABASE Size
+SELECT pg_size_pretty(pg_database_size(current_database()));
+
+# Print Total Table Size including all Partitions & indices
+SELECT pg_size_pretty(sum(pg_total_relation_size(inhrelid::regclass))) as total_size
+FROM pg_inherits
+WHERE inhparent = 'products'::regclass;
+
+# Print All partitions size for a partitioned table - Sorted by partition name
+SELECT inhrelid::regclass as partition_name, pg_size_pretty(pg_total_relation_size(inhrelid::regclass)) as partition_size
+FROM pg_inherits
+WHERE inhparent = 'products'::regclass AND pg_total_relation_size(inhrelid::regclass) > 1048576
+ORDER BY partition_name DESC;
+
+# Print All partitions size for a partitioned table - Sorted by partition size
+SELECT inhrelid::regclass as partition_name, pg_size_pretty(pg_total_relation_size(inhrelid::regclass)) as partition_size
+FROM pg_inherits
+WHERE inhparent = 'products'::regclass AND pg_total_relation_size(inhrelid::regclass) > 1048576
+ORDER BY pg_total_relation_size(inhrelid::regclass) DESC;
+
+# Print Partition information
+DO $$
+DECLARE
+    partition_name TEXT;
+    total_size BIGINT := 0;
+BEGIN
+    FOR partition_name IN
+        SELECT pg_class.relname
+        FROM pg_inherits
+        JOIN pg_class ON pg_inherits.inhrelid = pg_class.oid
+        WHERE pg_inherits.inhparent = 'products'::regclass
+    LOOP
+        EXECUTE FORMAT('SELECT pg_total_relation_size(''%I'')', partition_name) INTO total_size;
+        RAISE NOTICE 'Partition % size: %', partition_name, pg_size_pretty(total_size);
+    END LOOP;
+END $$;
 
 # Unused PG Index
 SELECT relname, indexrelname, idx_scan, idx_tup_read, idx_tup_fetch, pg_size_pretty(pg_relation_size(indexrelname::regclass)) as size
