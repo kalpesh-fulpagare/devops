@@ -150,6 +150,23 @@ CREATE TABLESPACE db_table_space OWNER kalpesh LOCATION '/mnt/volume/postgresql_
 CREATE TABLE users_2021_05_23 PARTITION OF users FOR VALUES FROM ('2021-05-23') TO ('2021-05-24') TABLESPACE db_table_space;
 ALTER INDEX users_2021_05_23_user_id_e_idx1 SET TABLESPACE db_table_space;
 
+# Index Creation Progress
+SELECT
+  now()::TIME(0),
+  p.phase,
+  round(p.blocks_done / p.blocks_total::numeric * 100, 2) AS "% done",
+  p.blocks_total,
+  p.blocks_done,
+  p.tuples_total,
+  p.tuples_done,
+  a.query,
+  ai.schemaname,
+  ai.relname,
+  ai.indexrelname
+FROM pg_stat_progress_create_index p
+JOIN pg_stat_activity a ON p.pid = a.pid
+LEFT JOIN pg_stat_all_indexes ai on ai.relid = p.relid AND ai.indexrelid = p.index_relid;
+
 # Postgresql Connections
 SELECT sum(numbackends) FROM pg_stat_database;
 SELECT count(*), client_addr from pg_stat_activity group by client_addr;
@@ -161,18 +178,18 @@ SELECT pid, pg_terminate_backend(pid)
 FROM pg_stat_activity 
 WHERE datname = current_database() AND pid <> pg_backend_pid();
 
-# Postgresql Long Pending connections
+# Postgresql Long Pending Queries / Slow queries
 SELECT pid, now() - pg_stat_activity.query_start AS duration, state, query
 FROM pg_stat_activity
-WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes' AND state = 'active';
+WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes' AND state = 'active' AND query NOT LIKE 'START_REPLICATION%';
 
 SELECT pid, now() - pg_stat_activity.query_start AS duration, state, query
 FROM pg_stat_activity
-WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes' AND state = 'active';
+WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes' AND state = 'active' AND query NOT LIKE 'START_REPLICATION%';
 
 SELECT pid, now() - pg_stat_activity.query_start AS duration, pg_stat_activity.query_start AS start_time, query, state 
 FROM pg_stat_activity
-WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes' AND state = 'active' AND pid = 22401;
+WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes' AND state = 'active' AND pid = 22401 AND query NOT LIKE 'START_REPLICATION%';
 
 SELECT pg_cancel_backend(6260);
 SELECT pg_terminate_backend(6260);
