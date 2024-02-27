@@ -73,3 +73,12 @@ GRANT USAGE ON SCHEMA public TO sample_readonly;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO sample_readonly;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT SELECT ON TABLES TO sample_readonly;
+
+/* Enable logging of SQL's */
+vim /etc/postgresql/<POSTGRES_VERSION>/main/postgresql.conf
+logging_collector = on
+log_destination = 'stderr'
+log_directory = '/var/log/postgresql'
+log_filename = 'sql_%Y_%m_%d.log'
+log_file_mode = 0776
+log_min_duration_statement = 0
