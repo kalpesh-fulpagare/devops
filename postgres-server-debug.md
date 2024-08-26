@@ -142,11 +142,6 @@ FROM pg_stat_all_tables WHERE n_live_tup > 1 AND n_dead_tup > 25000
 ORDER BY perc_dead_tuple DESC LIMIT 25;
 ```
 
-#### DeadTuple count of top tables
-```sql
-SELECT n_live_tup, n_dead_tup, relname FROM pg_stat_all_tables ORDER BY n_dead_tup DESC LIMIT 25;
-```
-
 ## PgStat Statments - Useful commands
 #### Long Pending Queries / Slow queries
 ```sql
