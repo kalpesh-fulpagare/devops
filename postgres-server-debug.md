@@ -163,12 +163,12 @@ SELECT pid, query, now() - pg_stat_activity.query_start AS duration, pg_stat_act
 FROM pg_stat_activity
 WHERE pid = 22401;
 ```
-## Terminate a connection
+#### Terminate a connection
 ```sql
 SELECT pg_cancel_backend(22401);
 SELECT pg_terminate_backend(22401); 
 ```
-## Terminate *ALL* Connections
+#### Terminate *ALL* Connections
 ```sql
 SELECT pid, pg_terminate_backend(pid) 
 FROM pg_stat_activity 
@@ -180,14 +180,14 @@ SELECT * from pg_stat_statements order by shared_blks_hit + shared_blks_read des
 ```
 
 ## Connection
-## Connection Info
+#### Connection Info
 ```sql
 SELECT sum(numbackends) FROM pg_stat_database;
 SELECT count(*), client_addr from pg_stat_activity group by client_addr;
 SELECT client_addr, COUNT(client_addr) from pg_stat_activity  GROUP BY pg_stat_activity.client_addr;
 SELECT application_name, client_addr, pid, usename from pg_stat_activity;
 ```
-## Connect psql Console with SSL Connection
+#### Connect psql Console with SSL Connection
 ```sql
 psql "sslmode=disable hostaddr=0.0.0.0 port=5432 user=kalpesh dbname=sample_production"
 psql "hostaddr=0.0.0.0 port=5432 user=kalpesh dbname=sample_production"
