@@ -78,6 +78,25 @@ ORDER BY pg_relation_size(indexrelname::regclass) DESC;
 SELECT schemaname, relname AS table_name, indexrelname AS index_name, idx_scan AS index_scans
 FROM pg_stat_user_indexes WHERE idx_scan = 0;
 ```
+```sql
+SELECT idx.schemaname, idx.relname AS table_name, idx.indexrelname AS index_name, idx.idx_scan AS index_scans,
+idx.idx_tup_read AS index_tuples_read, idx.idx_tup_fetch AS index_tuples_fetched, db.stats_reset AS stats_last_reset
+FROM pg_stat_user_indexes AS idx
+JOIN pg_stat_database AS db
+ON db.datid = (SELECT oid FROM pg_database WHERE datname = current_database())
+WHERE db.datname = current_database() AND idx.idx_scan = 0;
+```
+#### Index Usage
+```sql
+SELECT
+    idx.schemaname, idx.relname AS table_name, idx.indexrelname AS index_name,
+    idx.idx_scan AS index_scans, idx.idx_tup_read AS index_tuples_read,
+    idx.idx_tup_fetch AS index_tuples_fetched, db.stats_reset AS stats_last_reset
+FROM pg_stat_user_indexes AS idx
+JOIN pg_stat_database AS db
+ON db.datid = (SELECT oid FROM pg_database WHERE datname = current_database())
+WHERE db.datname = current_database();
+```
 #### Last Stats reset time
 ```sql
 SELECT datname, stats_reset FROM pg_stat_database;
